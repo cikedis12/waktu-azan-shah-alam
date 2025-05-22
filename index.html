@@ -1,45 +1,90 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Waktu Azan Shah Alam</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+
     body {
-      background-color: #111;
+      background: linear-gradient(145deg, #1c1c1c, #0e0e0e);
       color: #fff;
-      font-family: sans-serif;
+      font-family: 'Orbitron', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
       padding: 20px;
       text-align: center;
     }
+
     h1 {
       font-size: 2.5rem;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
+
+    #clock {
+      font-size: 2rem;
+      color: #00ffcc;
+      margin: 10px 0;
+    }
+
     .times {
-      font-size: 1.4rem;
-      line-height: 2.5rem;
+      font-size: 1.2rem;
+      margin: 20px 0;
+      line-height: 2rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 15px;
+      width: fit-content;
+    }
+
+    #countdown {
+      margin-top: 20px;
+      font-size: 1.5rem;
+      color: #ffcc00;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
     }
   </style>
 </head>
 <body>
   <h1>Waktu Azan Shah Alam</h1>
+  <div id="clock">Memuat masa...</div>
   <div class="times" id="times">Memuat waktu azan...</div>
+  <div id="countdown">⏳ Memuat kiraan azan...</div>
+
+  <audio id="azanAudio" src="https://upload.wikimedia.org/wikipedia/commons/9/95/Makkah_Azan.ogg" preload="auto"></audio>
 
   <script>
+    function updateClock() {
+      const now = new Date();
+      const jam = now.getHours().toString().padStart(2, '0');
+      const minit = now.getMinutes().toString().padStart(2, '0');
+      const saat = now.getSeconds().toString().padStart(2, '0');
+      document.getElementById('clock').textContent = jam + ":" + minit + ":" + saat;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    let azanPlayed = {};
+
     async function getAzanTimes() {
       try {
         const res = await fetch("https://api.aladhan.com/v1/timingsByCity?city=Shah%20Alam&country=Malaysia&method=9");
         const data = await res.json();
         const t = data.data.timings;
 
-        const html = `
+        const jadual = `
           Subuh: ${t.Fajr}<br>
           Syuruk: ${t.Sunrise}<br>
           Zohor: ${t.Dhuhr}<br>
@@ -47,7 +92,79 @@
           Maghrib: ${t.Maghrib}<br>
           Isyak: ${t.Isha}
         `;
-        document.getElementById("times").innerHTML = html;
+        document.getElementById("times").innerHTML = jadual;
+
+        const prayerTimes = {
+          "Subuh": t.Fajr,
+          "Syuruk": t.Sunrise,
+          "Zohor": t.Dhuhr,
+          "Asar": t.Asr,
+          "Maghrib": t.Maghrib,
+          "Isyak": t.Isha
+        };
+
+        let nextPrayerName = "";
+        let nextPrayerTime = null;
+
+        const now = new Date();
+
+        // Convert prayer times to Date objects today
+        const prayerDateTimes = {};
+        for (const [name, timeStr] of Object.entries(prayerTimes)) {
+          const [h, m] = timeStr.split(":");
+          const dt = new Date(now);
+          dt.setHours(parseInt(h), parseInt(m), 0, 0);
+          prayerDateTimes[name] = dt;
+        }
+
+        // Find next prayer
+        for (const [name, dt] of Object.entries(prayerDateTimes)) {
+          if (dt > now) {
+            nextPrayerName = name;
+            nextPrayerTime = dt;
+            break;
+          }
+        }
+        if (!nextPrayerTime) {
+          // Next day Subuh
+          nextPrayerName = "Subuh";
+          nextPrayerTime = new Date(now);
+          nextPrayerTime.setDate(nextPrayerTime.getDate() + 1);
+          const [h, m] = prayerTimes["Subuh"].split(":");
+          nextPrayerTime.setHours(parseInt(h), parseInt(m), 0, 0);
+        }
+
+        function updateCountdown() {
+          const now = new Date();
+          const diff = Math.max(0, (nextPrayerTime - now) / 1000);
+          const jam = Math.floor(diff / 3600);
+          const min = Math.floor((diff % 3600) / 60);
+          const sec = Math.floor(diff % 60);
+          document.getElementById("countdown").textContent =
+            `⏳ ${nextPrayerName} dalam ${jam.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
+
+          // Play azan if current time matches prayer time (hh:mm)
+          const currentHHMM = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+          for (const [prayer, timeStr] of Object.entries(prayerTimes)) {
+            if (timeStr === currentHHMM && !azanPlayed[prayer]) {
+              const audio = document.getElementById("azanAudio");
+              audio.play();
+              azanPlayed[prayer] = true;
+              console.log("Playing azan for " + prayer);
+            }
+            // Reset azanPlayed after 1 minute to allow play next day
+            if (azanPlayed[prayer]) {
+              const prayerTime = prayerDateTimes[prayer];
+              if ((now - prayerTime) / 1000 > 60) {
+                azanPlayed[prayer] = false;
+              }
+            }
+          }
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
       } catch (err) {
         console.error(err);
         document.getElementById("times").innerText = "Gagal mengambil waktu azan.";
