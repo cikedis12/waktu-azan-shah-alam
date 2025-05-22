@@ -2,22 +2,22 @@
 <html lang="ms">
 <head>
   <meta charset="UTF-8" />
-  <title>Waktu Azan Shah Alam - Static Version</title>
+  <title>Waktu Azan Shah Alam</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
     body {
-      background: linear-gradient(145deg, #1c1c1c, #0e0e0e);
-      color: #fff;
+      margin: 0;
+      padding: 20px;
       font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
       text-align: center;
+      min-height: 100vh;
+      justify-content: center;
     }
     h1 {
       font-size: 2.5rem;
@@ -25,22 +25,20 @@
     }
     #clock {
       font-size: 2rem;
-      color: #00ffcc;
-      margin: 10px 0;
+      color: #00ffd5;
+      margin-bottom: 20px;
     }
     .times {
       font-size: 1.2rem;
-      margin: 20px 0;
-      line-height: 2rem;
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 10px;
       padding: 15px;
-      width: fit-content;
+      line-height: 2rem;
     }
     #countdown {
       margin-top: 20px;
       font-size: 1.5rem;
-      color: #ffcc00;
+      color: #ffeb3b;
       animation: pulse 2s infinite;
     }
     @keyframes pulse {
@@ -56,10 +54,11 @@
   <div class="times" id="times"></div>
   <div id="countdown">⏳ Memuat kiraan azan...</div>
 
+  <!-- Azan Audio -->
   <audio id="azanAudio" src="https://upload.wikimedia.org/wikipedia/commons/9/95/Makkah_Azan.ogg" preload="auto"></audio>
 
   <script>
-    // Static prayer times (update these daily or as needed)
+    // ✅ Static Waktu Azan (Edit manually as needed)
     const prayerTimes = {
       Subuh: "05:50",
       Syuruk: "07:10",
@@ -74,11 +73,12 @@
       const jam = now.getHours().toString().padStart(2, '0');
       const minit = now.getMinutes().toString().padStart(2, '0');
       const saat = now.getSeconds().toString().padStart(2, '0');
-      document.getElementById('clock').textContent = jam + ":" + minit + ":" + saat;
+      document.getElementById('clock').textContent = `${jam}:${minit}:${saat}`;
     }
 
     function showPrayerTimes() {
-      const jadual = `
+      const timesEl = document.getElementById("times");
+      timesEl.innerHTML = `
         Subuh: ${prayerTimes.Subuh}<br>
         Syuruk: ${prayerTimes.Syuruk}<br>
         Zohor: ${prayerTimes.Zohor}<br>
@@ -86,15 +86,13 @@
         Maghrib: ${prayerTimes.Maghrib}<br>
         Isyak: ${prayerTimes.Isyak}
       `;
-      document.getElementById("times").innerHTML = jadual;
     }
 
-    // Convert prayer times to Date objects for today
     function getPrayerDateTimes() {
       const now = new Date();
       const prayerDateTimes = {};
-      for (const [name, timeStr] of Object.entries(prayerTimes)) {
-        const [h, m] = timeStr.split(":");
+      for (const [name, time] of Object.entries(prayerTimes)) {
+        const [h, m] = time.split(":");
         const dt = new Date(now);
         dt.setHours(parseInt(h), parseInt(m), 0, 0);
         prayerDateTimes[name] = dt;
@@ -128,16 +126,13 @@
       document.getElementById("countdown").textContent =
         `⏳ ${nextPrayer.name} dalam ${jam.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
 
-      // Play azan if current time matches prayer time (hh:mm)
-      const currentHHMM = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      // Play azan at correct time
+      const nowHHMM = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
       for (const [prayer, timeStr] of Object.entries(prayerTimes)) {
-        if (timeStr === currentHHMM && !azanPlayed[prayer]) {
-          const audio = document.getElementById("azanAudio");
-          audio.play();
+        if (timeStr === nowHHMM && !azanPlayed[prayer]) {
+          document.getElementById("azanAudio").play();
           azanPlayed[prayer] = true;
-          console.log("Playing azan for " + prayer);
         }
-        // Reset azanPlayed after 1 minute to allow play next day
         if (azanPlayed[prayer]) {
           const prayerTime = prayerDateTimes[prayer];
           if ((now - prayerTime) / 1000 > 60) {
@@ -147,11 +142,10 @@
       }
     }
 
-    // Initialize display
+    // ⏱ Initialize
     updateClock();
     showPrayerTimes();
     updateCountdown();
-
     setInterval(updateClock, 1000);
     setInterval(updateCountdown, 1000);
   </script>
