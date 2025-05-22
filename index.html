@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Waktu Azan Shah Alam</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    .time {
+      font-size: 1.5rem;
+      line-height: 2.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Waktu Azan Shah Alam</h1>
+  <div id="times" class="time">Memuat waktu azan...</div>
+
+  <script>
+    async function getAzanTimes() {
+      try {
+        const response = await fetch('https://api.waktusolat.my/v2/solat/today/SGR01');
+        const data = await response.json();
+        const t = data.data;
+
+        const html = `
+          Subuh: ${t.fajr}<br>
+          Syuruk: ${t.syuruk}<br>
+          Zohor: ${t.dhuhr}<br>
+          Asar: ${t.asr}<br>
+          Maghrib: ${t.maghrib}<br>
+          Isyak: ${t.isha}
+        `;
+
+        document.getElementById('times').innerHTML = html;
+      } catch (error) {
+        document.getElementById('times').innerText = "Gagal mengambil waktu azan.";
+      }
+    }
+
+    getAzanTimes();
+  </script>
+</body>
+</html>
