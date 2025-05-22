@@ -1,24 +1,60 @@
-<script>
-  async function getAzanTimes() {
-    try {
-      const response = await fetch("https://api.aladhan.com/v1/timingsByCity?city=Shah%20Alam&country=Malaysia&method=9");
-      const result = await response.json();
-      const t = result.data.timings;
-
-      const html = `
-        Subuh: ${t.Fajr}<br>
-        Syuruk: ${t.Sunrise}<br>
-        Zohor: ${t.Dhuhr}<br>
-        Asar: ${t.Asr}<br>
-        Maghrib: ${t.Maghrib}<br>
-        Isyak: ${t.Isha}
-      `;
-      document.getElementById('times').innerHTML = html;
-    } catch (error) {
-      console.error("Error:", error);
-      document.getElementById('times').innerText = "Gagal mengambil waktu azan.";
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Waktu Azan Shah Alam</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
     }
-  }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    .times {
+      font-size: 1.4rem;
+      line-height: 2.5rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Waktu Azan Shah Alam</h1>
+  <div class="times" id="times">Memuat waktu azan...</div>
 
-  getAzanTimes();
-</script>
+  <script>
+    async function getAzanTimes() {
+      try {
+        const res = await fetch("https://api.aladhan.com/v1/timingsByCity?city=Shah%20Alam&country=Malaysia&method=9");
+        const data = await res.json();
+        const t = data.data.timings;
+
+        const html = `
+          Subuh: ${t.Fajr}<br>
+          Syuruk: ${t.Sunrise}<br>
+          Zohor: ${t.Dhuhr}<br>
+          Asar: ${t.Asr}<br>
+          Maghrib: ${t.Maghrib}<br>
+          Isyak: ${t.Isha}
+        `;
+        document.getElementById("times").innerHTML = html;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("times").innerText = "Gagal mengambil waktu azan.";
+      }
+    }
+
+    getAzanTimes();
+  </script>
+</body>
+</html>
