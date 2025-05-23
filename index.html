@@ -1,153 +1,86 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Waktu Azan Shah Alam</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dahua PlayBox Display</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
     body {
       margin: 0;
-      padding: 20px;
-      font-family: 'Orbitron', sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
       display: flex;
       flex-direction: column;
       align-items: center;
-      text-align: center;
-      min-height: 100vh;
       justify-content: center;
+      height: 100vh;
+      overflow: hidden;
     }
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
+    .clock {
+      font-size: 6rem;
+      font-weight: bold;
     }
-    #clock {
-      font-size: 2rem;
-      color: #00ffd5;
-      margin-bottom: 20px;
-    }
-    .times {
-      font-size: 1.2rem;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      padding: 15px;
-      line-height: 2rem;
-    }
-    #countdown {
+    .weather {
       margin-top: 20px;
       font-size: 1.5rem;
-      color: #ffeb3b;
-      animation: pulse 2s infinite;
     }
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.5; }
-      100% { opacity: 1; }
+    .prayer-times {
+      margin-top: 40px;
+      font-size: 1.2rem;
+    }
+    .marquee {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .marquee span {
+      display: inline-block;
+      padding-left: 100%;
+      animation: scroll-left 20s linear infinite;
+    }
+    @keyframes scroll-left {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-100%); }
     }
   </style>
 </head>
 <body>
-  <h1>Waktu Azan Shah Alam</h1>
-  <div id="clock">Memuat masa...</div>
-  <div class="times" id="times"></div>
-  <div id="countdown">⏳ Memuat kiraan azan...</div>
-
-  <!-- Azan Audio -->
-  <audio id="azanAudio" src="https://upload.wikimedia.org/wikipedia/commons/9/95/Makkah_Azan.ogg" preload="auto"></audio>
+  <div class="clock" id="clock">00:00:00</div>
+  <div class="weather">Weather: Loading...</div>
+  <div class="prayer-times">
+    <h3>Prayer Times (Shah Alam)</h3>
+    <ul>
+      <li>Fajr: 5:45 AM</li>
+      <li>Dhuhr: 1:00 PM</li>
+      <li>Asr: 4:30 PM</li>
+      <li>Maghrib: 7:10 PM</li>
+      <li>Isha: 8:30 PM</li>
+    </ul>
+  </div>
+  <div class="marquee">
+    <span>Welcome to our facility – Stay safe and have a great day!</span>
+  </div>
 
   <script>
-    // ✅ Static Waktu Azan (Edit manually as needed)
-    const prayerTimes = {
-      Subuh: "05:50",
-      Syuruk: "07:10",
-      Zohor: "13:00",
-      Asar: "16:30",
-      Maghrib: "19:15",
-      Isyak: "20:35"
-    };
-
     function updateClock() {
       const now = new Date();
-      const jam = now.getHours().toString().padStart(2, '0');
-      const minit = now.getMinutes().toString().padStart(2, '0');
-      const saat = now.getSeconds().toString().padStart(2, '0');
-      document.getElementById('clock').textContent = `${jam}:${minit}:${saat}`;
+      const clock = document.getElementById('clock');
+      clock.textContent = now.toLocaleTimeString('en-MY', { hour12: false });
     }
-
-    function showPrayerTimes() {
-      const timesEl = document.getElementById("times");
-      timesEl.innerHTML = `
-        Subuh: ${prayerTimes.Subuh}<br>
-        Syuruk: ${prayerTimes.Syuruk}<br>
-        Zohor: ${prayerTimes.Zohor}<br>
-        Asar: ${prayerTimes.Asar}<br>
-        Maghrib: ${prayerTimes.Maghrib}<br>
-        Isyak: ${prayerTimes.Isyak}
-      `;
-    }
-
-    function getPrayerDateTimes() {
-      const now = new Date();
-      const prayerDateTimes = {};
-      for (const [name, time] of Object.entries(prayerTimes)) {
-        const [h, m] = time.split(":");
-        const dt = new Date(now);
-        dt.setHours(parseInt(h), parseInt(m), 0, 0);
-        prayerDateTimes[name] = dt;
-      }
-      return prayerDateTimes;
-    }
-
-    let azanPlayed = {};
-
-    function findNextPrayer(prayerDateTimes) {
-      const now = new Date();
-      for (const [name, dt] of Object.entries(prayerDateTimes)) {
-        if (dt > now) {
-          return { name, time: dt };
-        }
-      }
-      // If none left today, return Subuh next day
-      const nextDaySubuh = new Date(prayerDateTimes.Subuh);
-      nextDaySubuh.setDate(nextDaySubuh.getDate() + 1);
-      return { name: "Subuh", time: nextDaySubuh };
-    }
-
-    function updateCountdown() {
-      const prayerDateTimes = getPrayerDateTimes();
-      const nextPrayer = findNextPrayer(prayerDateTimes);
-      const now = new Date();
-      const diff = Math.max(0, (nextPrayer.time - now) / 1000);
-      const jam = Math.floor(diff / 3600);
-      const min = Math.floor((diff % 3600) / 60);
-      const sec = Math.floor(diff % 60);
-      document.getElementById("countdown").textContent =
-        `⏳ ${nextPrayer.name} dalam ${jam.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
-
-      // Play azan at correct time
-      const nowHHMM = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-      for (const [prayer, timeStr] of Object.entries(prayerTimes)) {
-        if (timeStr === nowHHMM && !azanPlayed[prayer]) {
-          document.getElementById("azanAudio").play();
-          azanPlayed[prayer] = true;
-        }
-        if (azanPlayed[prayer]) {
-          const prayerTime = prayerDateTimes[prayer];
-          if ((now - prayerTime) / 1000 > 60) {
-            azanPlayed[prayer] = false;
-          }
-        }
-      }
-    }
-
-    // ⏱ Initialize
-    updateClock();
-    showPrayerTimes();
-    updateCountdown();
     setInterval(updateClock, 1000);
-    setInterval(updateCountdown, 1000);
+    updateClock();
+
+    // Optional: Use weather API for live weather (e.g., OpenWeatherMap)
+    // For now, static text:
+    document.querySelector('.weather').textContent = "Weather: 30°C, Partly Cloudy";
   </script>
 </body>
 </html>
