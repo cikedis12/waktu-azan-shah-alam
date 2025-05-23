@@ -5,47 +5,109 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dahua PlayBox Display</title>
   <style>
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-Regular.woff2') format('woff2'),
+           url('fonts/Inter-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-SemiBold.woff2') format('woff2'),
+           url('fonts/Inter-SemiBold.woff') format('woff');
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Inter';
+      src: url('fonts/Inter-ExtraBold.woff2') format('woff2'),
+           url('fonts/Inter-ExtraBold.woff') format('woff');
+      font-weight: 800;
+      font-style: normal;
+    }
+
+    :root {
+      --primary-bg: #0f172a;
+      --secondary-bg: #1e293b;
+      --text-light: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-color: #38bdf8;
+    }
+
     body {
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      background: var(--primary-bg);
+      color: var(--text-light);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: space-evenly;
       height: 100vh;
+      width: 100vw;
       overflow: hidden;
     }
+
     .clock {
-      font-size: 6rem;
-      font-weight: bold;
+      font-size: 8rem;
+      font-weight: 800;
+      color: var(--accent-color);
+      margin-bottom: 20px;
     }
+
     .weather {
-      margin-top: 20px;
-      font-size: 1.5rem;
+      font-size: 2.5rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 20px;
     }
+
     .prayer-times {
-      margin-top: 40px;
-      font-size: 1.2rem;
+      text-align: center;
+      background: var(--secondary-bg);
+      padding: 20px 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
+
+    .prayer-times h3 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .prayer-times ul {
+      list-style: none;
+      padding: 0;
+      font-size: 1.8rem;
+    }
+
+    .prayer-times li {
+      margin: 8px 0;
+    }
+
     .marquee {
       position: absolute;
       bottom: 0;
       width: 100%;
-      background: #1e293b;
-      color: #e2e8f0;
-      padding: 10px;
+      background: var(--secondary-bg);
+      color: var(--text-light);
+      font-size: 2rem;
+      padding: 15px 0;
       white-space: nowrap;
       overflow: hidden;
-      box-sizing: border-box;
     }
+
     .marquee span {
       display: inline-block;
       padding-left: 100%;
       animation: scroll-left 20s linear infinite;
     }
+
     @keyframes scroll-left {
       0% { transform: translateX(0); }
       100% { transform: translateX(-100%); }
@@ -56,7 +118,7 @@
   <div class="clock" id="clock">00:00:00</div>
   <div class="weather">Weather: Loading...</div>
   <div class="prayer-times">
-    <h3>Prayer Times (Shah Alam)</h3>
+    <h3>Prayer Times – Shah Alam</h3>
     <ul>
       <li>Fajr: 5:45 AM</li>
       <li>Dhuhr: 1:00 PM</li>
@@ -78,8 +140,7 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Optional: Use weather API for live weather (e.g., OpenWeatherMap)
-    // For now, static text:
+    // Static weather placeholder
     document.querySelector('.weather').textContent = "Weather: 30°C, Partly Cloudy";
   </script>
 </body>
