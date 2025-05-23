@@ -120,16 +120,19 @@
   <div class="prayer-times">
     <h3>Prayer Times – Shah Alam</h3>
     <ul>
-      <li>Fajr: 5:45 AM</li>
-      <li>Dhuhr: 1:00 PM</li>
-      <li>Asr: 4:30 PM</li>
-      <li>Maghrib: 7:10 PM</li>
-      <li>Isha: 8:30 PM</li>
+      <li data-time="05:45">Fajr: 5:45 AM</li>
+      <li data-time="13:00">Dhuhr: 1:00 PM</li>
+      <li data-time="16:30">Asr: 4:30 PM</li>
+      <li data-time="19:10">Maghrib: 7:10 PM</li>
+      <li data-time="20:30">Isha: 8:30 PM</li>
     </ul>
   </div>
   <div class="marquee">
     <span>Welcome to our facility – Stay safe and have a great day!</span>
   </div>
+
+  <audio id="azanSound" src="audio/azan.mp3"></audio>
+  <audio id="beepSound" src="audio/beep.mp3"></audio>
 
   <script>
     function updateClock() {
@@ -140,8 +143,41 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Static weather placeholder
     document.querySelector('.weather').textContent = "Weather: 30°C, Partly Cloudy";
+
+    const azanAudio = document.getElementById('azanSound');
+    const beepAudio = document.getElementById('beepSound');
+    let lastCheck = '';
+
+    function checkPrayerTimes() {
+      const now = new Date();
+      const currentTime = now.getHours().toString().padStart(2, '0') + ':' +
+                          now.getMinutes().toString().padStart(2, '0');
+
+      if (lastCheck === currentTime) return;
+      lastCheck = currentTime;
+
+      document.querySelectorAll('.prayer-times li').forEach(item => {
+        const prayerTime = item.dataset.time;
+
+        if (currentTime === prayerTime) {
+          azanAudio.play();
+        }
+
+        const [hour, minute] = prayerTime.split(':').map(Number);
+        const fiveMinBefore = new Date(now);
+        fiveMinBefore.setHours(hour, minute - 5);
+
+        const fiveMinBeforeTime = fiveMinBefore.getHours().toString().padStart(2, '0') + ':' +
+                                  fiveMinBefore.getMinutes().toString().padStart(2, '0');
+
+        if (currentTime === fiveMinBeforeTime) {
+          beepAudio.play();
+        }
+      });
+    }
+
+    setInterval(checkPrayerTimes, 1000);
   </script>
 </body>
 </html>
